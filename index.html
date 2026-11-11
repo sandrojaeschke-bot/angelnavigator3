@@ -14,7 +14,7 @@ main{padding:12px;max-width:900px;margin:auto}.search{display:flex;gap:8px;margi
 input{min-width:0;flex:1;background:#172d39;border:1px solid var(--line);border-radius:10px;color:white;padding:12px;font-size:15px}
 button{border:0;border-radius:10px;padding:11px 13px;background:var(--accent);color:#082019;font-weight:700;font-size:14px}
 button.secondary{background:#213844;color:#e8f3f5;border:1px solid #35515e}
-#map{height:48vh;min-height:300px;border-radius:14px;border:1px solid var(--line);overflow:hidden}
+#map{height:56vh;min-height:300px;border-radius:14px;border:1px solid var(--line);overflow:hidden}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin:9px 0}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px;margin-top:10px}
 .panel h2{font-size:15px;margin:0 0 7px}.muted{color:var(--muted);font-size:13px;line-height:1.45}
@@ -35,15 +35,17 @@ footer{color:#8199a4;font-size:11px;text-align:center;padding:14px}
 .legend-note{border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
 #structureInfo{margin:8px 0 0}
 .depth-arrow-label{background:#10212b!important;color:white!important;border:1px solid #fff9!important;border-radius:6px!important;font-weight:800!important;font-size:12px!important;padding:2px 5px!important;box-shadow:0 2px 6px #0008!important}.depth-arrow-label:before{display:none!important}
+#mapTools{display:flex;gap:8px;flex-wrap:wrap;margin:9px 0 4px}#mapTools button{flex:1 1 145px;min-height:46px}#mobileArrowDetail{background:#193743;border:1px solid #426b76;border-radius:9px;padding:10px;margin:8px 0;font-size:13px;line-height:1.45}#mobileArrowDetail:empty{display:none}
+@media(min-width:700px){#mobileArrowDetail{display:none}}
 </style>
 </head>
 <body>
-<header><div><h1>🎣 AngelNavigator</h1><small>Angelregionen · Bodenhöhen · Kartenlegende</small></div><span class="pill">TESTVERSION 1.4</span></header>
+<header><div><h1>🎣 AngelNavigator</h1><small>Angelregionen · Bodenhöhen · Kartenlegende</small></div><span class="pill">TESTVERSION 1.5</span></header>
 <main>
 <div class="search"><input id="query" placeholder="Gewässer oder Ort suchen …" value=""><button id="searchBtn">Suchen</button></div>
 <div class="layout"><section>
 <div class="panel" style="margin:0 0 10px"><h2>🎣 Meine Angelregionen</h2><div class="actions" style="margin:0" id="regions"></div></div>
-<div id="map"></div><div class="actions"><button class="secondary" id="switchMapSource">🗺️ Kartenquelle wechseln</button></div><p class="muted" id="mapSourceStatus" role="status">Kartenquelle wird geprüft …</p>
+<div id="map"></div><div id="mapTools"><button id="scanAreaTop">🧭 Tiefenpfeile suchen</button><button id="clearArrows" class="secondary">🧹 Pfeile löschen</button></div><div id="mobileArrowDetail" role="status" aria-live="polite">Tippe auf einen Pfeil, um den Höhenunterschied hier zu sehen.</div><p class="muted" id="scanStatusTop" role="status" aria-live="polite">Punkt auf der Karte wählen, dann Tiefenpfeile suchen. Bereits gefundene Pfeile bleiben erhalten.</p><div class="actions"><button class="secondary" id="switchMapSource">🗺️ Kartenquelle wechseln</button></div><p class="muted" id="mapSourceStatus" role="status">Kartenquelle wird geprüft …</p>
 <div class="panel"><h2>Gewässerbodenkarte Niederlande (Test)</h2><label style="display:flex;gap:10px;align-items:center"><input id="depthToggle" type="checkbox" style="flex:0;width:20px;height:20px"> Offizielle Bodenhöhen einblenden</label><label style="display:block;margin-top:12px">Datenauswahl (amtliche Kartenebene): <select id="bathyDate" style="width:100%;padding:10px;margin-top:5px"><option value="202606">Juni 2026</option><option value="202601">Januar 2026</option></select></label><p class="muted" id="depthInfo">Datenquelle: Rijkswaterstaat, Bodenhöhen in Metern über/unter NAP. Der ausgewählte Monat bezeichnet den Datenstand, nicht das Messdatum jedes einzelnen Punkts. Abdeckung je nach Gebiet unterschiedlich. Keine direkten Wassertiefen und keine Navigationsempfehlung.</p></div>
 <div class="panel" id="legendPanel"><button class="secondary legend-toggle" id="legendButton" aria-expanded="false" aria-controls="legendContent">🎨 Kartenlegende <span id="legendArrow">Anzeigen ▾</span></button>
 <div id="legendContent" hidden><div class="legend-grid">
@@ -57,9 +59,9 @@ footer{color:#8199a4;font-size:11px;text-align:center;padding:14px}
 <div id="status">Karte wird geladen. Suche ein Gewässer oder nutze deinen Standort.</div>
 </section><aside class="side">
 <div class="panel"><h2>Gewässer-Information</h2><div id="selected"><strong>Noch kein Gewässer ausgewählt</strong><p class="muted">Tippe auf die Karte oder suche nach einem See.</p></div></div>
-<div class="panel"><h2>📍 Bodenhöhe und Kanten prüfen (1.4)</h2><p class="muted">Tippe auf eine Stelle der Karte und starte eine Live-Abfrage beim amtlichen Kartendienst. Ein Ergebnis ist nur eine Bodenhöhe relativ zu NAP, keine aktuelle Wassertiefe. Der Dienst kann die Anfrage auch ablehnen oder keine Daten für den Punkt haben.</p><div class="actions"><button id="checkHeight">🔎 Bodenhöhe abfragen</button><button id="checkEdge" class="secondary">📐 Tiefenkante prüfen</button><button id="scanArea" class="secondary">🧭 Tiefenpfeile suchen</button><button id="copyPoint" class="secondary">Koordinaten kopieren</button></div><p class="muted" id="heightResult" role="status" aria-live="polite">Noch keine Messwert-Abfrage durchgeführt.</p><p class="muted" id="edgeResult" role="status" aria-live="polite">Tiefenkanten-Test: Wähle einen Punkt und tippe auf „Tiefenkante prüfen“. Die App vergleicht Bodenhöhen in der Umgebung.</p><div id="arrowDetail" role="status" aria-live="polite" style="padding:12px;border:1px solid #426b76;border-radius:9px;background:#193743;margin:10px 0"><strong>🧭 Ausgewählter Tiefenpfeil</strong><div id="arrowDetailText" class="muted" style="margin-top:6px">Tippe auf einen Pfeil in der Karte. Der Höhenunterschied erscheint hier, ohne die Karte zu verdecken.</div></div><p class="muted" id="scanResult" role="status" aria-live="polite">Rote Pfeile markieren starke Unterschiede ab 5 m. Gelbe Pfeile markieren kleinere Unterschiede ab 2 m. Details erscheinen rechts neben der Karte beim Antippen. Nur Stichproben.</p><p class="muted" id="pointInfo">Noch kein Punkt ausgewählt.</p><p class="muted"><a href="https://geoweb.rijkswaterstaat.nl/ModuleViewer/?app=d22bec5b3e3244b19cdd20b308442683" target="_blank" rel="noopener noreferrer">Amtlichen Bathymetrie-Viewer öffnen ↗</a></p></div><div class="panel"><h2>Tiefendaten</h2><div class="depth"></div><p class="muted"><strong>Noch nicht als echte Wassertiefe verfügbar.</strong><br>Die neue Kartenebene zeigt, sofern für die Region vorhanden, gemessene Bodenhöhen relativ zu NAP. Daraus lässt sich ohne Wasserstand keine aktuelle Wassertiefe berechnen. Wir zeigen keine erfundenen Tiefen an.</p></div>
+<div class="panel"><h2>📍 Bodenhöhe und Kanten prüfen (1.5)</h2><p class="muted">Tippe auf eine Stelle der Karte und starte eine Live-Abfrage beim amtlichen Kartendienst. Ein Ergebnis ist nur eine Bodenhöhe relativ zu NAP, keine aktuelle Wassertiefe. Der Dienst kann die Anfrage auch ablehnen oder keine Daten für den Punkt haben.</p><div class="actions"><button id="checkHeight">🔎 Bodenhöhe abfragen</button><button id="checkEdge" class="secondary">📐 Tiefenkante prüfen</button><button id="scanArea" class="secondary">🧭 Tiefenpfeile suchen</button><button id="copyPoint" class="secondary">Koordinaten kopieren</button></div><p class="muted" id="heightResult" role="status" aria-live="polite">Noch keine Messwert-Abfrage durchgeführt.</p><p class="muted" id="edgeResult" role="status" aria-live="polite">Tiefenkanten-Test: Wähle einen Punkt und tippe auf „Tiefenkante prüfen“. Die App vergleicht Bodenhöhen in der Umgebung.</p><div id="arrowDetail" role="status" aria-live="polite" style="padding:12px;border:1px solid #426b76;border-radius:9px;background:#193743;margin:10px 0"><strong>🧭 Ausgewählter Tiefenpfeil</strong><div id="arrowDetailText" class="muted" style="margin-top:6px">Tippe auf einen Pfeil in der Karte. Der Höhenunterschied erscheint hier, ohne die Karte zu verdecken.</div></div><p class="muted" id="scanResult" role="status" aria-live="polite">Rote Pfeile markieren starke Unterschiede ab 5 m. Gelbe Pfeile markieren kleinere Unterschiede ab 2 m. Details erscheinen rechts neben der Karte beim Antippen. Nur Stichproben.</p><p class="muted" id="pointInfo">Noch kein Punkt ausgewählt.</p><p class="muted"><a href="https://geoweb.rijkswaterstaat.nl/ModuleViewer/?app=d22bec5b3e3244b19cdd20b308442683" target="_blank" rel="noopener noreferrer">Amtlichen Bathymetrie-Viewer öffnen ↗</a></p></div><div class="panel"><h2>Tiefendaten</h2><div class="depth"></div><p class="muted"><strong>Noch nicht als echte Wassertiefe verfügbar.</strong><br>Die neue Kartenebene zeigt, sofern für die Region vorhanden, gemessene Bodenhöhen relativ zu NAP. Daraus lässt sich ohne Wasserstand keine aktuelle Wassertiefe berechnen. Wir zeigen keine erfundenen Tiefen an.</p></div>
 <div class="panel"><h2>Meine gemerkten Gewässer</h2><div id="saved" class="muted">Noch keine gespeicherten Gewässer.</div></div>
-<div class="panel"><h2>Nächster Entwicklungsschritt</h2><p class="muted">Die neue Live-Abfrage versucht, einen Bodenhöhenwert für einen ausgewählten Kartenpunkt beim amtlichen WMS-Dienst zu erhalten. Das ist ein technischer Test: Ein Wert ist nur dann nutzbar, wenn der Dienst ihn tatsächlich zurückliefert. Die lokale Kantenprüfung vergleicht fünf Bodenhöhen-Stichproben. Die Rasterprüfung zeigt nur starke Kanten ab 5 m direkt als rote Pfeile. Weitere Kanten ab 2 m sind als anklickbare gelbe Punkte markiert. Die Rasterprüfung prüft ein 5 × 5-Raster und markiert auffällige Höhenunterschiede zwischen benachbarten Punkten. Keine flächendeckende Kantenkarte und keine aktuellen Wassertiefen.</p></div>
+<div class="panel"><h2>Nächster Entwicklungsschritt</h2><p class="muted">Die neue Live-Abfrage versucht, einen Bodenhöhenwert für einen ausgewählten Kartenpunkt beim amtlichen WMS-Dienst zu erhalten. Das ist ein technischer Test: Ein Wert ist nur dann nutzbar, wenn der Dienst ihn tatsächlich zurückliefert. Die lokale Kantenprüfung vergleicht fünf Bodenhöhen-Stichproben. Die Rasterprüfung zeigt rote Pfeile ab 5 m und gelbe Pfeile ab 2 m. Die Rasterprüfung prüft ein 5 × 5-Raster und markiert auffällige Höhenunterschiede zwischen benachbarten Punkten. Keine flächendeckende Kantenkarte und keine aktuellen Wassertiefen.</p></div>
 </aside></div>
 <footer>Prototyp · Benötigt Internet für Karte und Gewässersuche · Standort wird nur nach deiner Freigabe abgefragt</footer>
 </main>
@@ -135,6 +137,11 @@ async function checkEdge(){
 }
 // 0.7: begrenzte Raster-Stichprobe; keine Interpolation oder erfundenen Messwerte.
 let scanLayer=null, scanSequence=0;
+const scannedAreas=new Set();
+let totalScans=0,totalRed=0,totalYellow=0;
+function updateScanSummary(message){$('scanResult').textContent=message;$('scanStatusTop').textContent=message;}
+function clearAllArrows(){scanSequence++;if(scanLayer)map.removeLayer(scanLayer);scanLayer=null;arrowHitSegments=[];scannedAreas.clear();totalScans=0;totalRed=0;totalYellow=0;$('arrowDetailText').textContent='Noch kein Pfeil ausgewählt.';$('mobileArrowDetail').textContent='Tippe auf einen Pfeil, um den Höhenunterschied hier zu sehen.';updateScanSummary('Alle bisherigen Tiefenpfeile gelöscht. Wähle einen Punkt und starte eine neue Suche.');}
+
 let arrowHitSegments=[];
 // Zusätzlich zur Linien-Klickfläche prüfen wir Klicks direkt in Kartenpixeln.
 // Das funktioniert auch, wenn der Browser die schmalen SVG-Pfeile verfehlt.
@@ -154,7 +161,7 @@ function nearestArrowAt(latlng){
 // Pfeilspitze in geografischen Koordinaten, Richtung: höherer zu niedrigerem NAP-Wert.
 function showArrowDetail(difference,color){
  const label=difference>=5?'🔴 Starker Höhenunterschied':'🟡 Mögliche Tiefenkante';
- $('arrowDetailText').textContent=label+': '+difference.toFixed(1).replace('.',',')+' m Bodenhöhenunterschied auf ca. 25 m. Die Pfeilspitze zeigt zur niedrigeren Bodenhöhe (nicht zur aktuellen Wassertiefe). Stichprobe, nicht unabhängig überprüft.';
+ const msg=label+': '+difference.toFixed(1).replace('.',',')+' m Bodenhöhenunterschied auf ca. 25 m. Die Pfeilspitze zeigt zur niedrigeren Bodenhöhe (nicht zur aktuellen Wassertiefe). Stichprobe, nicht unabhängig überprüft.';$('arrowDetailText').textContent=msg;$('mobileArrowDetail').textContent=msg;
 }
 function drawDepthArrow(start,end,color,difference,layer){
  const dLat=end[0]-start[0], dLon=end[1]-start[1];
@@ -176,17 +183,17 @@ function drawDepthArrow(start,end,color,difference,layer){
  L.polyline([left,tip,right],{color,weight:5,opacity:.95,lineCap:'round',lineJoin:'round',bubblingMouseEvents:false}).on('click',clickArrow).addTo(layer);
  L.polyline([start,tip],{color,weight:18,opacity:0.01,interactive:true,bubblingMouseEvents:false}).on('click',clickArrow).addTo(layer);
  L.polyline([left,tip,right],{color,weight:18,opacity:0.01,interactive:true,bubblingMouseEvents:false}).on('click',clickArrow).addTo(layer);
- // Keine permanenten Zahlen: Einzelheiten stehen im Popup beim Antippen.
+ // Keine permanenten Zahlen: Einzelheiten erscheinen im Infobereich.
 }
 
 async function scanArea(){
  const out=$('scanResult');
  if(!selected){out.textContent='Bitte zuerst einen Punkt auf der Karte auswählen.';return;}
  const seq=++scanSequence, point={...selected}, date=$('bathyDate').value;
- if(scanLayer){map.removeLayer(scanLayer);scanLayer=null;}
- arrowHitSegments=[];
- $('arrowDetailText').textContent='Suche läuft. Tippe anschließend auf einen Pfeil im Wasser.';
- scanLayer=L.layerGroup().addTo(map);
+ if(!scanLayer)scanLayer=L.layerGroup().addTo(map);
+ const areaKey=date+':'+point.lat.toFixed(5)+':'+point.lon.toFixed(5);
+ if(scannedAreas.has(areaKey)){updateScanSummary('Dieser Punkt wurde bereits untersucht. Die Pfeile bleiben sichtbar. Wähle eine andere Stelle.');return;}
+ $('arrowDetailText').textContent='Suche läuft. Vorhandene Pfeile bleiben sichtbar.';
  const spacing=25, N=5;
  const latStep=spacing/111320, lonStep=spacing/(111320*Math.cos(point.lat*Math.PI/180));
  const coords=Array.from({length:N*N},(_,i)=>{
@@ -194,7 +201,7 @@ async function scanArea(){
   return [point.lat+row*latStep,point.lon+col*lonStep];
  });
  const values=Array(N*N).fill(null);
- out.textContent='Prüfe 25 Messpunkte rund um die Markierung … Das kann etwas dauern.';
+ updateScanSummary('Prüfe 25 Messpunkte rund um die Markierung … Vorhandene Pfeile bleiben sichtbar.');
  let next=0, finished=0;
  async function worker(){
   while(next<coords.length){
@@ -203,7 +210,7 @@ async function scanArea(){
    try{values[i]=await fetchHeightAt(...coords[i],date);}catch(e){values[i]=null;}
    if(seq!==scanSequence)return;
    finished++;
-   out.textContent='Bodenhöhen werden geprüft: '+finished+' von 25 Punkten …';
+   updateScanSummary('Bodenhöhen werden geprüft: '+finished+' von 25 Punkten …');
   }
  }
  await Promise.all(Array.from({length:4},()=>worker()));
@@ -225,10 +232,10 @@ async function scanArea(){
    }
   }
  }
- if(!links){out.textContent='Keine auswertbaren Nachbarpunkte: '+valid+'/25 gültige Bodenhöhen. Der Kartendienst hat hier keine ausreichenden Daten geliefert. Keine Kanten eingezeichnet.';return;}
+ if(!links){updateScanSummary('Keine auswertbaren Nachbarpunkte: '+valid+'/25 gültige Bodenhöhen. Bisherige Pfeile bleiben erhalten.');return;}
  if(marker)marker.closePopup();
  // Kartenposition beim Suchen nicht verändern.
- out.textContent='Tiefenpfeile: Rot ab 5 m sichtbar; gelbe Pfeile ab 2 m antippen. Pfeilspitze zeigt zu niedrigerer Bodenhöhe. '+valid+'/25 gültige Bodenhöhen, '+links+' Vergleiche. Rot: '+red+' starke Unterschiede (ab 5 m), Gelb: '+yellow+' mögliche Kanten (ab 2 m), Grün: '+green+' geringere Unterschiede (ohne Pfeil). Abstand jeweils ca. 25 m. Nur Stichproben, keine bestätigten Angelspots oder Wassertiefen.';
+ scannedAreas.add(areaKey);totalScans++;totalRed+=red;totalYellow+=yellow;updateScanSummary(totalScans+' untersuchte Bereiche · insgesamt '+totalRed+' rote und '+totalYellow+' gelbe Pfeile (auch überlappende Vergleiche möglich). Letzte Stichprobe: '+valid+'/25 gültige Bodenhöhen, '+links+' Vergleiche. Pfeilspitze zeigt zu niedrigerer Bodenhöhe. Abstand ca. 25 m. Keine bestätigten Wassertiefen oder Angelspots.');
 }
 async function queryHeight(){
  const out=$('heightResult');
@@ -286,18 +293,18 @@ async function updateBathyLayer(date){
  }catch(e){status('Amtliche Bodenhöhenkarte derzeit nicht verfügbar: '+e.message);}
 }
 window.addEventListener('DOMContentLoaded',()=>{
- const dateSelect=document.getElementById('bathyDate');dateSelect.value=localStorage.getItem('an_bathy_date')||'202606';updateBathyLayer(dateSelect.value);dateSelect.addEventListener('change',()=>{scanSequence++;if(scanLayer){map.removeLayer(scanLayer);scanLayer=null;}$('scanResult').textContent='Messstand geändert. Bitte Rasterprüfung neu starten.';localStorage.setItem('an_bathy_date',dateSelect.value);updateBathyLayer(dateSelect.value);status('Messstand '+dateSelect.options[dateSelect.selectedIndex].text+' ausgewählt. Lokale Abdeckung ist nicht bestätigt.');});document.getElementById('copyPoint').addEventListener('click',async()=>{if(!selected){status('Bitte zuerst einen Punkt auf der Karte auswählen.');return;}const coords=selected.lat.toFixed(6)+', '+selected.lon.toFixed(6);try{await navigator.clipboard.writeText(coords);status('Koordinaten kopiert: '+coords)}catch(e){status('Koordinaten: '+coords)}}); const savedToggle=localStorage.getItem('an_bathy')==='1';document.getElementById('depthToggle').checked=savedToggle;if(savedToggle)updateBathyLayer(dateSelect.value);
+ const dateSelect=document.getElementById('bathyDate');dateSelect.value=localStorage.getItem('an_bathy_date')||'202606';updateBathyLayer(dateSelect.value);dateSelect.addEventListener('change',()=>{clearAllArrows();updateScanSummary('Messstand geändert. Frühere Pfeile wurden gelöscht, um unterschiedliche Datenstände nicht zu vermischen.');localStorage.setItem('an_bathy_date',dateSelect.value);updateBathyLayer(dateSelect.value);status('Messstand '+dateSelect.options[dateSelect.selectedIndex].text+' ausgewählt. Lokale Abdeckung ist nicht bestätigt.');});document.getElementById('copyPoint').addEventListener('click',async()=>{if(!selected){status('Bitte zuerst einen Punkt auf der Karte auswählen.');return;}const coords=selected.lat.toFixed(6)+', '+selected.lon.toFixed(6);try{await navigator.clipboard.writeText(coords);status('Koordinaten kopiert: '+coords)}catch(e){status('Koordinaten: '+coords)}}); const savedToggle=localStorage.getItem('an_bathy')==='1';document.getElementById('depthToggle').checked=savedToggle;if(savedToggle)updateBathyLayer(dateSelect.value);
  document.getElementById('depthToggle').addEventListener('change',e=>{if(e.target.checked)updateBathyLayer(dateSelect.value);else map.removeLayer(bathy);localStorage.setItem('an_bathy',e.target.checked?'1':'0');status(e.target.checked?'Amtliche Bodenhöhen-Ebene eingeschaltet (nur bei vorhandener Abdeckung sichtbar).':'Bodenhöhen-Ebene ausgeschaltet.');});
  const el=document.getElementById('regions');regions.forEach(([name,lat,lon])=>{let b=document.createElement('button');b.className='secondary';b.textContent=name;b.onclick=()=>choose(name,lat,lon,'Angelregion – ungefähre Kartenmitte');el.appendChild(b)});
 });
 const $=id=>document.getElementById(id);
 $('checkHeight').addEventListener('click',queryHeight);
 $('checkEdge').addEventListener('click',checkEdge);
-$('scanArea').addEventListener('click',scanArea);
+$('scanArea').addEventListener('click',scanArea);$('scanAreaTop').addEventListener('click',scanArea);$('clearArrows').addEventListener('click',clearAllArrows);
 $('legendButton').addEventListener('click',()=>{const open=$('legendContent').hidden;$('legendContent').hidden=!open;$('legendButton').setAttribute('aria-expanded',String(open));$('legendArrow').textContent=open?'Schließen ▴':'Anzeigen ▾';});
 $('structureToggle').addEventListener('change',e=>{const on=e.target.checked;$('structureInfo').textContent=on?'Strukturanalyse eingeschaltet. Die flächendeckende Kantenkarte ist noch nicht verfügbar. Nutze „Tiefenkante prüfen“ für einzelne Punkte.':'Strukturanalyse ausgeschaltet. Es werden keine künstlichen Angelstellen eingezeichnet.';status(on?'Strukturanalyse: Noch keine geprüften Strukturdaten vorhanden.':'Strukturanalyse ausgeschaltet.');});
 function status(t){$('status').textContent=t}
-function choose(name,lat,lon,extra=''){querySequence++;edgeSequence++;scanSequence++;if(scanLayer){map.removeLayer(scanLayer);scanLayer=null;}arrowHitSegments=[];$('arrowDetailText').textContent='Tippe nach der Suche auf einen Tiefenpfeil.';$('scanResult').textContent='Für diesen Punkt noch keine Rasterprüfung durchgeführt.';if(edgeLayer){map.removeLayer(edgeLayer);edgeLayer=null;}$('edgeResult').textContent='Für diesen Punkt noch keine Kantenprüfung durchgeführt.';$('heightResult').textContent='Für diesen Punkt noch keine Abfrage durchgeführt.';selected={name,lat,lon,extra};$('pointInfo').textContent='Koordinaten: '+lat.toFixed(6)+', '+lon.toFixed(6)+' · Bodenhöhe/Wassertiefe an diesem Punkt noch nicht geprüft.';if(marker)map.removeLayer(marker);marker=L.marker([lat,lon]).addTo(map).bindPopup(name).openPopup();if(extra!=='Manuell auf der Karte markiert')map.panTo([lat,lon]);$('selected').innerHTML='<strong>'+esc(name)+'</strong><p class="muted">'+lat.toFixed(5)+', '+lon.toFixed(5)+(extra?'<br>'+esc(extra):'')+'</p><span class="tag">Tiefendaten noch ungeprüft</span>';status('Gewässer ausgewählt: '+name)}
+function choose(name,lat,lon,extra=''){querySequence++;edgeSequence++;/* Bereits untersuchte Pfeile bei neuem Kartenpunkt behalten. */if(edgeLayer){map.removeLayer(edgeLayer);edgeLayer=null;}$('edgeResult').textContent='Für diesen Punkt noch keine Kantenprüfung durchgeführt.';$('heightResult').textContent='Für diesen Punkt noch keine Abfrage durchgeführt.';selected={name,lat,lon,extra};$('pointInfo').textContent='Koordinaten: '+lat.toFixed(6)+', '+lon.toFixed(6)+' · Bodenhöhe/Wassertiefe an diesem Punkt noch nicht geprüft.';if(marker)map.removeLayer(marker);marker=L.circleMarker([lat,lon],{radius:5,color:'#ffffff',weight:2,fillColor:'#51c7a5',fillOpacity:1}).addTo(map);if(extra!=='Manuell auf der Karte markiert')map.panTo([lat,lon]);$('selected').innerHTML='<strong>'+esc(name)+'</strong><p class="muted">'+lat.toFixed(5)+', '+lon.toFixed(5)+(extra?'<br>'+esc(extra):'')+'</p><span class="tag">Tiefendaten noch ungeprüft</span>';status('Gewässer ausgewählt: '+name)}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 map.on('click',e=>{if(e.originalEvent&&e.originalEvent._stopped)return;const arrow=nearestArrowAt(e.latlng);if(arrow){showArrowDetail(arrow.difference,arrow.color);return;}choose('Markierter Kartenpunkt',e.latlng.lat,e.latlng.lng,'Manuell auf der Karte markiert');});
 async function geocode(q){status('Suche nach „'+q+'“ …');try{let r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q='+encodeURIComponent(q));let a=await r.json();if(!a.length){status('Nichts gefunden. Versuche einen genaueren Namen oder Ort.');return}waters=a;$('results')?.remove();a.forEach(x=>{});let x=a[0];choose(x.name||q,+x.lat,+x.lon,x.type||x.class);status(a.length+' Treffer gefunden – erster Treffer auf der Karte markiert.')}catch(e){status('Suche gerade nicht erreichbar. Bitte später erneut versuchen.')}}
